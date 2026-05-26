@@ -41,7 +41,16 @@ void Scanner::nextToken()
 	// Если нашли * - проверяем на наличие "/" после нее. Если "/" не найден - ищем следующую "*".
 	while(ch_ == '/') {
 		nextChar();
-		if(ch_ == '*') {
+		if (ch_ == '/') {
+			while (ch_ != '\n' && !input_.eof()) {
+				nextChar();
+			}
+			if (ch_ == '\n') {
+				lineNumber_++;
+				nextChar();
+			}
+		}
+		else if(ch_ == '*') {
 			nextChar();
 			bool inside = true;
 			while(inside) {
