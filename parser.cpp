@@ -98,6 +98,9 @@ void Parser::statement()
 		mustBe(T_RPAREN);
 		codegen_->emit(PRINT);
 	}
+	else if (match(T_SKIP)) {
+		// skip ничего не делает - код не генерируется
+	}
 	else {
 		reportError("statement expected.");
 	}

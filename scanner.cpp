@@ -28,6 +28,7 @@ static const char * tokenNames_[] = {
 	"'('",
 	"')'",
 	"';'",
+	"'skip'"
 };
 
 void Scanner::nextToken()
