@@ -28,7 +28,9 @@ static const char * tokenNames_[] = {
 	"'('",
 	"')'",
 	"';'",
-	"'skip'"
+	"'skip'",
+	"'++'",
+	"'--'"
 };
 
 void Scanner::nextToken()
@@ -195,15 +197,27 @@ void Scanner::nextToken()
 			//Знаки операций. Для "+"/"-" получим лексему операции типа сложнения, и соответствующую операцию.
 			//для "*" - лексему операции типа умножения
 			case '+':
-				token_ = T_ADDOP;
-				arithmeticValue_ = A_PLUS;
 				nextChar();
+				if (ch_ == '+') {
+					token_ = T_INCREMENT;
+					nextChar();
+				}
+				else {
+					token_ = T_ADDOP;
+					arithmeticValue_ = A_PLUS;
+				}
 				break;
 
 			case '-':
-				token_ = T_ADDOP;
-				arithmeticValue_ = A_MINUS;
 				nextChar();
+				if (ch_ == '-') {
+					token_ = T_DECREMENT;
+					nextChar();
+				}
+				else {
+					token_ = T_ADDOP;
+					arithmeticValue_ = A_MINUS;
+				}
 				break;
 
 			case '*':

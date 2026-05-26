@@ -44,7 +44,15 @@ void Parser::statement()
 	// Следующей лексемой должно быть присваивание. Затем идет блок expression, который возвращает значение на вершину стека.
 	// Записываем это значение по адресу нашей переменной
 	if(see(T_IDENTIFIER)) {
+		bool incdec = true;
 		vector<int> addresses;
+		addresses.push_back(findOrAddVariable(scanner_->getStringValue()));
+		if (scanner_->peekNextChar() == ':')
+		{
+			next();
+			mustBe(T_ASSIGN);
+			incdec = false;
+		}
 		while (scanner_->peekNextChar() == ':')
 		{
 			addresses.push_back(findOrAddVariable(scanner_->getStringValue()));
@@ -56,7 +64,7 @@ void Parser::statement()
 			codegen_->emit(DUP);                       // копируем значение
 			codegen_->emit(STORE, addresses[i]);       // сохраняем в переменную
 		}
-		codegen_->emit(STORE, addresses[0]);
+		if (!incdec) codegen_->emit(STORE, addresses[0]);
 		
 	}
 	// Если встретили IF, то затем должно следовать условие. На вершине стека лежит 1 или 0 в зависимости от выполнения условия.
@@ -110,6 +118,10 @@ void Parser::statement()
 	}
 	else if (match(T_SKIP)) {
 		// skip ничего не делает - код не генерируется
+	}
+	else if (see(T_DECREMENT) || see(T_INCREMENT))
+	{
+		expression();
 	}
 	else {
 		reportError("statement expected.");
@@ -170,7 +182,29 @@ void Parser::factor()
 		Множитель описывается следующими правилами:
 		<factor> -> number | identifier | -<factor> | (<expression>) | READ
 	*/
-	if(see(T_NUMBER)) {
+	if (see(T_DECREMENT) || see(T_INCREMENT))
+	{
+		bool is_inc = see(T_INCREMENT);
+		next();
+
+		if (!see(T_IDENTIFIER)) {
+			reportError("Identifier expected after ++/--");
+			return;
+		}
+
+		string name = scanner_->getStringValue();
+		int addr = findOrAddVariable(name);
+		next();
+
+		codegen_->emit(LOAD, addr);
+		codegen_->emit(PUSH, 1);
+		if (is_inc) codegen_->emit(ADD);
+		else codegen_->emit(SUB);
+		codegen_->emit(DUP);
+		codegen_->emit(STORE, addr);
+		return;
+	}
+	else if(see(T_NUMBER)) {
 		int value = scanner_->getIntValue();
 		next();
 		codegen_->emit(PUSH, value);
@@ -180,6 +214,20 @@ void Parser::factor()
 		int varAddress = findOrAddVariable(scanner_->getStringValue());
 		next();
 		codegen_->emit(LOAD, varAddress);
+		if (see(T_INCREMENT) || see(T_DECREMENT))
+        {
+            bool is_inc = see(T_INCREMENT);
+            next();
+
+            codegen_->emit(DUP);
+            codegen_->emit(PUSH, 1);      
+            if (is_inc) codegen_->emit(ADD);
+            else codegen_->emit(SUB);
+            
+            codegen_->emit(STORE, varAddress);
+            return;
+        }
+		return;
 		//Если встретили переменную, то выгружаем значение, лежащее по ее адресу, на вершину стека 
 	}
 	else if(see(T_ADDOP) && scanner_->getArithmeticValue() == A_MINUS) {

@@ -31,6 +31,8 @@ enum Token {
 	T_RPAREN,		// Закрывающая скобка
 	T_SEMICOLON,	// ";"
 	T_SKIP,			// "skip"
+	T_INCREMENT,	// "++"
+	T_DECREMENT,	// "--"
 };
 
 // Функция tokenToString возвращает описание лексемы.
