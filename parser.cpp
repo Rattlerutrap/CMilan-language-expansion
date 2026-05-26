@@ -1,5 +1,6 @@
 #include "parser.h"
 #include <sstream>
+#include <vector>
 
 //Выполняем синтаксический разбор блока program. Если во время разбора не обнаруживаем 
 //никаких ошибок, то выводим последовательность команд стек-машины
@@ -43,11 +44,20 @@ void Parser::statement()
 	// Следующей лексемой должно быть присваивание. Затем идет блок expression, который возвращает значение на вершину стека.
 	// Записываем это значение по адресу нашей переменной
 	if(see(T_IDENTIFIER)) {
-		int varAddress = findOrAddVariable(scanner_->getStringValue());
-		next();
-		mustBe(T_ASSIGN);
+		vector<int> addresses;
+		while (scanner_->peekNextChar() == ':')
+		{
+			addresses.push_back(findOrAddVariable(scanner_->getStringValue()));
+			next();
+			mustBe(T_ASSIGN);
+		}
 		expression();
-		codegen_->emit(STORE, varAddress);
+		for (int i = addresses.size() - 1; i > 0; --i) {
+			codegen_->emit(DUP);                       // копируем значение
+			codegen_->emit(STORE, addresses[i]);       // сохраняем в переменную
+		}
+		codegen_->emit(STORE, addresses[0]);
+		
 	}
 	// Если встретили IF, то затем должно следовать условие. На вершине стека лежит 1 или 0 в зависимости от выполнения условия.
 	// Затем зарезервируем место для условного перехода JUMP_NO к блоку ELSE (переход в случае ложного условия). Адрес перехода

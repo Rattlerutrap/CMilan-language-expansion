@@ -10,7 +10,7 @@ using namespace std;
 enum Token {
 	T_EOF,			// Конец текстового потока
 	T_ILLEGAL,		// Признак недопустимого символа
-	T_IDENTIFIER,		// Идентификатор
+	T_IDENTIFIER,	// Идентификатор
 	T_NUMBER,		// Целочисленный литерал
 	T_BEGIN,		// Ключевое слово "begin"
 	T_END,			// Ключевое слово "end"
@@ -121,7 +121,7 @@ public:
 	{
 		return arithmeticValue_;
 	}
-
+	char peekNextChar() { return input_.peek(); }
 	// Переход к следующей лексеме.
 	// Текущая лексема записывается в token_ и изымается из потока.
 	void nextToken();	
